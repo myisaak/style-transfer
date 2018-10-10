@@ -55,12 +55,14 @@ public class OpenImage : Editor
             // var fileContent = File.ReadAllBytes(path);
             // texture.LoadImage(fileContent);
             path = EditorUtility.SaveFilePanel("Save styled image", $"{Application.dataPath}/{path}", "", "png");
-            
-            sw.Restart();
-            await (t = StyleTransfer.Transfer(texture));
-            sw.Stop();
-            UnityEngine.Debug.Log($"Running time elapsed: {sw.Elapsed.Seconds} secs");
-            AssetDatabase.Refresh();
+            if (path.Length != 0)
+            {
+                sw.Restart();
+                await (t = StyleTransfer.Transfer(texture));
+                sw.Stop();
+                UnityEngine.Debug.Log($"Running time elapsed: {sw.Elapsed.Seconds} secs");
+                AssetDatabase.Refresh();
+            }
         }
 
         EditorApplication.update -= Update;
