@@ -30,6 +30,7 @@ public static class StyleTransfer
         return image;
     }
 
+    public static bool isWorking = false;
     public static Tensor imageTensor;
     static Texture2D srcImage;
     public static Tensor predictTensor;
@@ -103,12 +104,15 @@ public static class StyleTransfer
         Tensor result = null;
         cts = new CancellationTokenSource();
         try {
-        await Task.Run(() => result = tnet.Predict(StyleTransfer.imageTensor), cts.Token);
+            isWorking = true;
+            await Task.Run(() => result = tnet.Predict(StyleTransfer.imageTensor), cts.Token);
         } catch (OperationCanceledException) {
             UnityEngine.Debug.Log("Running task cancelled");
+            isWorking = false;
             UnityEditor.EditorUtility.ClearProgressBar();
         } catch {
             UnityEngine.Debug.Log("Failed to run task");
+            isWorking = false;
         }
         cts = null;
         if(result != null)
@@ -123,6 +127,8 @@ public static class StyleTransfer
     {
         if (cts != null)
             cts.Cancel();
+
+        isWorking = false;
     }
 }
 

@@ -5,10 +5,9 @@ using System.Threading.Tasks;
 using System.ComponentModel;
 using System.Diagnostics;
 
-public class OpenImage : Editor
-{
+public class OpenImage : EditorWindow {
+
     private static string path = "";
-    private static bool executing = false;
     private static Task t;
 
     [MenuItem("Window/Style Transfer/Wave")]
@@ -28,10 +27,8 @@ public class OpenImage : Editor
 
     [MenuItem("Window/Style Transfer/Wreck")]
     static void Wreck() => ApplyAsync("wreck");
-    async static void ApplyAsync(string styleName)
-    {
-        EditorApplication.update += Update;
 
+    async static void ApplyAsync(string styleName) {
         var sw = new Stopwatch();
         sw.Start();
         StyleTransfer.Initialize("styles", styleName);
@@ -44,8 +41,6 @@ public class OpenImage : Editor
             EditorUtility.DisplayDialog("Select Texture", "You must select a texture first!", "OK");
             return;
         }
-        
-
 
         path = AssetDatabase.GetAssetPath(texture);
         //path = EditorUtility.OpenFilePanel("Overwrite with png", "", "png");
@@ -63,43 +58,48 @@ public class OpenImage : Editor
                 UnityEngine.Debug.Log($"Running time elapsed: {sw.Elapsed.Seconds} secs");
                 AssetDatabase.Refresh();
             }
+        } else {
+            UnityEngine.Debug.Log("Texture not found");
         }
 
-        EditorApplication.update -= Update;
         EditorUtility.ClearProgressBar();
     }
 
-    static void Update() {
-        if (StyleTransfer.Progress >= 0 && StyleTransfer.Progress <= 120)
-        {
-            bool cancel = UnityEditor.EditorUtility.DisplayCancelableProgressBar("Loading...", $"{StyleTransfer.Progress}/120", (float)StyleTransfer.Progress / 120f);
-            if(cancel) {
-                EditorUtility.ClearProgressBar();
+    [MenuItem("Window/Style Transfer/Editor")]
+    static void Init() {
+        var window = GetWindow(typeof(OpenImage));
+    }
+
+    Rect rect;
+
+    void OnGUI() {
+        rect = new Rect(3, 3, position.width - 3, 20);
+        if (GUI.Button(rect, !StyleTransfer.isWorking ? "Start" : "Stop")) {
+            if (!StyleTransfer.isWorking) {
+                ApplyAsync("rain_princess");
+            }
+            else {
                 StyleTransfer.Reset();
-                EditorApplication.update -= Update;
                 StyleTransfer.Cancel();
-                return;
             }
-            if (StyleTransfer.Progress >= 120)
-            {
-                EditorUtility.ClearProgressBar();
-            }
+        }
+
+        if (StyleTransfer.Progress >= 0 && StyleTransfer.Progress <= 120) {
+            rect = new Rect(3, 23, position.width - 3, 20);
+            float progress = StyleTransfer.Progress / 120f;
+
+            EditorGUI.ProgressBar(rect, progress,"Progress");
         }
     }
 
-    public static void SaveImagePNG(Texture2D image)
-    {
-        if (image == null)
-        {
+    public static void SaveImagePNG(Texture2D image) {
+        if (image == null) {
             UnityEngine.Debug.Log($"SaveImagePNG(image: {nameof(image)} is null)");
         }
 
-        if (path.Length != 0)
-        {
+        if (path.Length != 0) {
             File.WriteAllBytes(path, image.EncodeToPNG());
-        }
-        else
-        {
+        } else {
             UnityEngine.Debug.Log("Please pick a file location");
         }
     }
