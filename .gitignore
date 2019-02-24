@@ -1,3 +1,11 @@
-Editor/
-Library/
-Temp/
+# Probably the most powerful gitignore there is for Unity
+
+# Ignore Everything
+/*
+
+# Except for these:
+!/.gitignore
+!/.gitattributes
+!/Assets
+!/ProjectSettings
+!/Packages
